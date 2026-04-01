@@ -17,7 +17,7 @@ final class StatusBar: NSObject {
 		statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
 		if let button = statusItem?.button {
-			button.image = NSImage(systemSymbolName: "rectangle.split.2x1", accessibilityDescription: "Tiler")
+			button.image = makeMenuBarIcon()
 		}
 
 		rebuildMenu()
@@ -60,6 +60,37 @@ final class StatusBar: NSObject {
 		menu.addItem(quitItem)
 
 		statusItem?.menu = menu
+	}
+
+	// MARK: - Menu Bar Icon
+
+	private func makeMenuBarIcon() -> NSImage {
+		let size = NSSize(width: 17, height: 17)
+		let image = NSImage(size: size, flipped: false) { rect in
+			let r: CGFloat = 1.3
+			let lw: CGFloat = 1.0
+			let p: CGFloat = 2 // padding
+
+			let w = size.width - p * 2
+			let h = size.height - p * 2
+
+			let rects = [
+				NSRect(x: p, y: p, width: w * 0.38, height: h),                    // Left tall column
+				NSRect(x: p + w * 0.42, y: p + h * 0.52, width: w * 0.27, height: h * 0.48),  // Top-middle
+				NSRect(x: p + w * 0.73, y: p + h * 0.52, width: w * 0.27, height: h * 0.48),  // Top-right
+				NSRect(x: p + w * 0.42, y: p, width: w * 0.58, height: h * 0.48),  // Bottom-right wide
+			]
+
+			for r2 in rects {
+				let path = NSBezierPath(roundedRect: r2.insetBy(dx: lw / 2, dy: lw / 2), xRadius: r, yRadius: r)
+				path.lineWidth = lw
+				path.stroke()
+			}
+
+			return true
+		}
+		image.isTemplate = true
+		return image
 	}
 
 	// MARK: - Actions
