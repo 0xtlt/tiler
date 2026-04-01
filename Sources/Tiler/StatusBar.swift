@@ -53,6 +53,11 @@ final class StatusBar: NSObject {
 		launchItem.state = isLaunchAtLoginEnabled() ? .on : .off
 		menu.addItem(launchItem)
 
+		// Edit config
+		let editItem = NSMenuItem(title: "Edit Config...", action: #selector(openConfig), keyEquivalent: ",")
+		editItem.target = self
+		menu.addItem(editItem)
+
 		menu.addItem(.separator())
 
 		let quitItem = NSMenuItem(title: "Quit Tiler", action: #selector(quit), keyEquivalent: "q")
@@ -110,6 +115,52 @@ final class StatusBar: NSObject {
 		let newState = !isLaunchAtLoginEnabled()
 		setLaunchAtLogin(newState)
 		sender.state = newState ? .on : .off
+	}
+
+	@objc private func openConfig() {
+		let path = (Config.defaultPath as NSString).expandingTildeInPath
+		let url = URL(fileURLWithPath: path)
+		let fm = FileManager.default
+
+		// Create directory if needed
+		let dir = url.deletingLastPathComponent().path
+		if !fm.fileExists(atPath: dir) {
+			try? fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
+		}
+
+		// Create default config if file doesn't exist
+		if !fm.fileExists(atPath: path) {
+			let defaultConfig = """
+			# Tiler config
+			# x, y, width, height are percentages of the usable screen area
+			# spacing: "1%" (percentage) or "10px" (pixels)
+			# hide_others: hide apps not in the active layout
+
+			spacing = "1%"
+			hide_others = true
+
+			[[layout]]
+			name = "main"
+			hotkey = "alt+1"
+
+			  [[layout.window]]
+			  app = "Terminal"
+			  x = 0
+			  y = 0
+			  width = 50
+			  height = 100
+
+			  [[layout.window]]
+			  app = "Safari"
+			  x = 50
+			  y = 0
+			  width = 50
+			  height = 100
+			"""
+			fm.createFile(atPath: path, contents: defaultConfig.data(using: .utf8))
+		}
+
+		NSWorkspace.shared.open(url)
 	}
 
 	@objc private func quit() {
