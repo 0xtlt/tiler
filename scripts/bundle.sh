@@ -17,6 +17,7 @@ mkdir -p "$BUNDLE_DIR/Contents/Resources"
 
 cp ".build/release/${APP_NAME}" "$BUNDLE_DIR/Contents/MacOS/${APP_NAME}"
 cp Info.plist "$BUNDLE_DIR/Contents/Info.plist"
+cp Tiler.icns "$BUNDLE_DIR/Contents/Resources/Tiler.icns"
 
 echo "Creating DMG..."
 mkdir -p "$DMG_DIR"
