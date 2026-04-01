@@ -40,24 +40,21 @@ jobs:
           codesign --force --options runtime --sign "Developer ID Application" --deep "dist/Tiler.app"
           codesign --verify --verbose "dist/Tiler.app"
 
-      - name: Notarize app
+      - name: Notarize
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          cd dist
-          ditto -c -k --keepParent "Tiler.app" "Tiler-${{ matrix.arch }}.zip"
-          xcrun notarytool submit "Tiler-${{ matrix.arch }}.zip" \
+          # Notarize the DMG
+          xcrun notarytool submit "dist/Tiler-${{ matrix.arch }}.dmg" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
-          xcrun stapler staple "Tiler.app"
-          rm "Tiler-${{ matrix.arch }}.zip"
-          ditto -c -k --keepParent "Tiler.app" "Tiler-${{ matrix.arch }}.zip"
+          xcrun stapler staple "dist/Tiler-${{ matrix.arch }}.dmg"
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.event.release.tag_name }}" "dist/Tiler-${{ matrix.arch }}.zip" --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" "dist/Tiler-${{ matrix.arch }}.dmg" --clobber
