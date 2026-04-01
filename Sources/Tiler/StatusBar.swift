@@ -6,6 +6,7 @@ final class StatusBar: NSObject {
 	private let layouts: [Layout]
 	private let spacing: Spacing
 	private let hideOthers: Bool
+	private var availableUpdate: Updater.Release?
 
 	init(layouts: [Layout], spacing: Spacing, hideOthers: Bool) {
 		self.layouts = layouts
@@ -21,6 +22,18 @@ final class StatusBar: NSObject {
 		}
 
 		rebuildMenu()
+		checkForUpdate()
+	}
+
+	private func checkForUpdate() {
+		Updater.checkForUpdate { [weak self] release in
+			guard let release = release else { return }
+			DispatchQueue.main.async {
+				self?.availableUpdate = release
+				self?.rebuildMenu()
+				print("[tiler] Update available: v\(release.version)")
+			}
+		}
 	}
 
 	private func rebuildMenu() {
@@ -57,6 +70,19 @@ final class StatusBar: NSObject {
 		let editItem = NSMenuItem(title: "Edit Config...", action: #selector(openConfig), keyEquivalent: ",")
 		editItem.target = self
 		menu.addItem(editItem)
+
+		// Update available
+		if let update = availableUpdate {
+			let updateItem = NSMenuItem(title: "Update Available (v\(update.version))", action: #selector(openUpdate), keyEquivalent: "")
+			updateItem.target = self
+			updateItem.image = NSImage(systemSymbolName: "arrow.down.circle", accessibilityDescription: "Update")
+			menu.addItem(updateItem)
+		}
+
+		// Version
+		let versionItem = NSMenuItem(title: "v\(Updater.currentVersion)", action: nil, keyEquivalent: "")
+		versionItem.isEnabled = false
+		menu.addItem(versionItem)
 
 		menu.addItem(.separator())
 
@@ -115,6 +141,11 @@ final class StatusBar: NSObject {
 		let newState = !isLaunchAtLoginEnabled()
 		setLaunchAtLogin(newState)
 		sender.state = newState ? .on : .off
+	}
+
+	@objc private func openUpdate() {
+		guard let update = availableUpdate, let url = URL(string: update.url) else { return }
+		NSWorkspace.shared.open(url)
 	}
 
 	@objc private func openConfig() {
