@@ -8,12 +8,27 @@ No tiling tree, no automatic rearrangement — just precise window positioning w
 
 - **TOML config** — define layouts with window positions as percentages
 - **Global hotkeys** — switch layouts with `alt+1`, `alt+2`, etc.
-- **Menu bar icon** — click to apply layouts or quit
+- **Menu bar icon** — click to apply layouts, edit config, or quit
 - **Window matching** — match by app name + optional title filter (supports Chrome profiles)
 - **Spacing** — configurable gaps between windows (% or px)
 - **Hide others** — automatically hide apps not in the active layout
+- **Multi-screen** — assign windows to specific screens
+- **Launch at login** — toggle from the menu bar
 
 ## Install
+
+### Homebrew (recommended)
+
+```bash
+brew tap 0xtlt/tap
+brew install tiler
+```
+
+### Download DMG
+
+Grab the latest DMG from [Releases](https://github.com/0xtlt/tiler/releases) — signed and notarized.
+
+### From source
 
 ```bash
 git clone https://github.com/0xtlt/tiler.git
@@ -24,7 +39,7 @@ cp .build/release/Tiler /usr/local/bin/tiler
 
 ## Setup
 
-Create your config at `~/.config/tiler/config.toml`:
+Create your config at `~/.config/tiler/config.toml` (or click **Edit Config...** in the menu bar):
 
 ```toml
 spacing = "1%"
@@ -90,6 +105,7 @@ hotkey = "alt+2"
 |-----|----------|-------------|
 | `app` | yes | App name (as shown in Activity Monitor) |
 | `title` | no | Window title filter (substring match). Useful for Chrome profiles |
+| `screen` | no | Screen index (1 = primary, 2 = secondary). Default: `1` |
 | `x` | yes | X position as % of screen (0-100) |
 | `y` | yes | Y position as % of screen (0-100) |
 | `width` | yes | Width as % of screen (0-100) |
@@ -103,9 +119,6 @@ tiler
 
 # Run with custom config
 tiler /path/to/config.toml
-
-# Run in background
-tiler &
 ```
 
 ## Permissions
