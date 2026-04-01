@@ -9,6 +9,29 @@ struct Updater {
 		let url: String
 	}
 
+	/// Check if installed via Homebrew
+	static var isHomebrew: Bool {
+		let paths = [
+			"/opt/homebrew/Caskroom/tiler",
+			"/usr/local/Caskroom/tiler",
+		]
+		return paths.contains { FileManager.default.fileExists(atPath: $0) }
+	}
+
+	/// Run brew upgrade in Terminal
+	static func brewUpgrade() {
+		let script = """
+		tell application "Terminal"
+			activate
+			do script "brew upgrade tiler"
+		end tell
+		"""
+		if let appleScript = NSAppleScript(source: script) {
+			var error: NSDictionary?
+			appleScript.executeAndReturnError(&error)
+		}
+	}
+
 	/// Check GitHub for a newer release (async, non-blocking)
 	static func checkForUpdate(completion: @escaping (Release?) -> Void) {
 		let urlString = "https://api.github.com/repos/\(repo)/releases/latest"

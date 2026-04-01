@@ -144,8 +144,12 @@ final class StatusBar: NSObject {
 	}
 
 	@objc private func openUpdate() {
-		guard let update = availableUpdate, let url = URL(string: update.url) else { return }
-		NSWorkspace.shared.open(url)
+		if Updater.isHomebrew {
+			Updater.brewUpgrade()
+		} else {
+			guard let update = availableUpdate, let url = URL(string: update.url) else { return }
+			NSWorkspace.shared.open(url)
+		}
 	}
 
 	@objc private func openConfig() {
