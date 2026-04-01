@@ -17,8 +17,45 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Import certificate
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+        run: |
+          CERT_PATH=$RUNNER_TEMP/cert.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain-db
+          echo -n "$CERTIFICATE_BASE64" | base64 --decode -o "$CERT_PATH"
+          security create-keychain -p "" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+
       - name: Build and bundle
         run: bash scripts/bundle.sh ${{ matrix.arch }}
+
+      - name: Sign app
+        run: |
+          codesign --force --options runtime --sign "Developer ID Application" --deep "dist/Tiler.app"
+          codesign --verify --verbose "dist/Tiler.app"
+
+      - name: Notarize app
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cd dist
+          ditto -c -k --keepParent "Tiler.app" "Tiler-${{ matrix.arch }}.zip"
+          xcrun notarytool submit "Tiler-${{ matrix.arch }}.zip" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          xcrun stapler staple "Tiler.app"
+          rm "Tiler-${{ matrix.arch }}.zip"
+          ditto -c -k --keepParent "Tiler.app" "Tiler-${{ matrix.arch }}.zip"
 
       - name: Upload to release
         env:
