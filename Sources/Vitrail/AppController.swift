@@ -24,6 +24,15 @@ final class AppController {
 		statusBar = StatusBar(appController: self)
 		statusBar.setup()
 
+		// Listen for second-instance signal to open configurator
+		DistributedNotificationCenter.default().addObserver(
+			forName: NSNotification.Name("com.thomastastet.vitrail.openConfigurator"),
+			object: nil,
+			queue: .main
+		) { [weak self] _ in
+			self?.openConfigurator()
+		}
+
 		print("[vitrail] Listening for hotkeys... (ctrl+c to quit)")
 
 		let app = NSApplication.shared
