@@ -1,6 +1,6 @@
 import AppKit
 
-final class AppController {
+final class AppController: NSObject, NSApplicationDelegate {
 	var config: Config
 	let hotKeyManager = HotKeyManager()
 	private(set) var statusBar: StatusBar!
@@ -10,6 +10,7 @@ final class AppController {
 	init(configPath: String) throws {
 		self.configPath = configPath
 		self.config = try Config.load(from: configPath)
+		super.init()
 	}
 
 	func start() {
@@ -37,6 +38,7 @@ final class AppController {
 
 		let app = NSApplication.shared
 		app.setActivationPolicy(.accessory)
+		app.delegate = self
 		setupMainMenu()
 		app.run()
 	}
@@ -71,6 +73,11 @@ final class AppController {
 		} catch {
 			print("[vitrail] Failed to reload config: \(error)")
 		}
+	}
+
+	func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+		openConfigurator()
+		return false
 	}
 
 	func openConfigurator() {
