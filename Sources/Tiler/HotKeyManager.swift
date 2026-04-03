@@ -4,9 +4,21 @@ import HotKey
 final class HotKeyManager {
 	private var hotKeys: [HotKey] = []
 
+	func unregisterAll() {
+		hotKeys.removeAll()
+	}
+
+	func pause() {
+		for hk in hotKeys { hk.isPaused = true }
+	}
+
+	func resume() {
+		for hk in hotKeys { hk.isPaused = false }
+	}
+
 	func register(layouts: [Layout], spacing: Spacing, hideOthers: Bool) {
 		for layout in layouts {
-			guard let (key, modifiers) = parseHotkey(layout.hotkey) else {
+			guard let (key, modifiers) = Self.parseHotkey(layout.hotkey) else {
 				print("[tiler] Invalid hotkey: \(layout.hotkey)")
 				continue
 			}
@@ -24,7 +36,7 @@ final class HotKeyManager {
 	}
 
 	/// Parse "alt+1" style string into Key + modifiers
-	private func parseHotkey(_ str: String) -> (Key, NSEvent.ModifierFlags)? {
+	static func parseHotkey(_ str: String) -> (Key, NSEvent.ModifierFlags)? {
 		let parts = str.lowercased().split(separator: "+").map(String.init)
 		guard parts.count >= 2 else { return nil }
 
@@ -43,7 +55,7 @@ final class HotKeyManager {
 		return (key, modifiers)
 	}
 
-	private func keyFromString(_ str: String) -> Key? {
+	private static func keyFromString(_ str: String) -> Key? {
 		switch str {
 		case "1": return .one
 		case "2": return .two

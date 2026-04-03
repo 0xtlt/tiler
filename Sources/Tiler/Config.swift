@@ -27,6 +27,11 @@ struct Spacing {
 
 	static let `default` = Spacing(value: 1, isPercent: true)
 
+	func toTOMLString() -> String {
+		let num = value == value.rounded() ? "\(Int(value))" : "\(value)"
+		return isPercent ? "\(num)%" : "\(num)px"
+	}
+
 	static func parse(_ str: String) -> Spacing {
 		let trimmed = str.trimmingCharacters(in: .whitespaces)
 		if trimmed.hasSuffix("%") {

@@ -3,15 +3,11 @@ import ServiceManagement
 
 final class StatusBar: NSObject {
 	private var statusItem: NSStatusItem?
-	private let layouts: [Layout]
-	private let spacing: Spacing
-	private let hideOthers: Bool
+	private unowned let appController: AppController
 	private var availableUpdate: Updater.Release?
 
-	init(layouts: [Layout], spacing: Spacing, hideOthers: Bool) {
-		self.layouts = layouts
-		self.spacing = spacing
-		self.hideOthers = hideOthers
+	init(appController: AppController) {
+		self.appController = appController
 	}
 
 	func setup() {
@@ -36,11 +32,12 @@ final class StatusBar: NSObject {
 		}
 	}
 
-	private func rebuildMenu() {
+	func rebuildMenu() {
 		let menu = NSMenu()
+		let config = appController.config
 
 		// Layouts
-		for (index, layout) in layouts.enumerated() {
+		for (index, layout) in config.layouts.enumerated() {
 			let item = NSMenuItem(title: "\(layout.name) (\(layout.hotkey))", action: #selector(applyLayoutAction(_:)), keyEquivalent: "")
 			item.target = self
 			item.tag = index
@@ -66,8 +63,13 @@ final class StatusBar: NSObject {
 		launchItem.state = isLaunchAtLoginEnabled() ? .on : .off
 		menu.addItem(launchItem)
 
-		// Edit config
-		let editItem = NSMenuItem(title: "Edit Config...", action: #selector(openConfig), keyEquivalent: ",")
+		// Configure (GUI)
+		let configureItem = NSMenuItem(title: "Configure...", action: #selector(openConfigurator), keyEquivalent: ",")
+		configureItem.target = self
+		menu.addItem(configureItem)
+
+		// Edit config file (text editor)
+		let editItem = NSMenuItem(title: "Edit Config File...", action: #selector(openConfigFile), keyEquivalent: "")
 		editItem.target = self
 		menu.addItem(editItem)
 
@@ -128,8 +130,9 @@ final class StatusBar: NSObject {
 
 	@objc private func applyLayoutAction(_ sender: NSMenuItem) {
 		let index = sender.tag
-		guard index >= 0, index < layouts.count else { return }
-		WindowManager.applyLayout(layouts[index], spacing: spacing, hideOthers: hideOthers)
+		let config = appController.config
+		guard index >= 0, index < config.layouts.count else { return }
+		WindowManager.applyLayout(config.layouts[index], spacing: config.spacing, hideOthers: config.hideOthers)
 	}
 
 	@objc private func openAccessibility() {
@@ -152,50 +155,12 @@ final class StatusBar: NSObject {
 		}
 	}
 
-	@objc private func openConfig() {
-		let path = (Config.defaultPath as NSString).expandingTildeInPath
-		let url = URL(fileURLWithPath: path)
-		let fm = FileManager.default
+	@objc private func openConfigurator() {
+		appController.openConfigurator()
+	}
 
-		// Create directory if needed
-		let dir = url.deletingLastPathComponent().path
-		if !fm.fileExists(atPath: dir) {
-			try? fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
-		}
-
-		// Create default config if file doesn't exist
-		if !fm.fileExists(atPath: path) {
-			let defaultConfig = """
-			# Tiler config
-			# x, y, width, height are percentages of the usable screen area
-			# spacing: "1%" (percentage) or "10px" (pixels)
-			# hide_others: hide apps not in the active layout
-
-			spacing = "1%"
-			hide_others = true
-
-			[[layout]]
-			name = "main"
-			hotkey = "alt+1"
-
-			  [[layout.window]]
-			  app = "Terminal"
-			  x = 0
-			  y = 0
-			  width = 50
-			  height = 100
-
-			  [[layout.window]]
-			  app = "Safari"
-			  x = 50
-			  y = 0
-			  width = 50
-			  height = 100
-			"""
-			fm.createFile(atPath: path, contents: defaultConfig.data(using: .utf8))
-		}
-
-		NSWorkspace.shared.open(url)
+	@objc private func openConfigFile() {
+		appController.openConfigInTextEditor()
 	}
 
 	@objc private func quit() {

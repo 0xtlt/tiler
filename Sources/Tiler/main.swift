@@ -19,37 +19,12 @@ if !WindowManager.checkAccessibility() {
 	exit(1)
 }
 
-// ─── Load config ─────────────────────────────────────────────
+// ─── Start ───────────────────────────────────────────────────
 
-let config: Config
 do {
-	config = try Config.load(from: configPath)
+	let controller = try AppController(configPath: configPath)
+	controller.start()
 } catch {
 	print("[tiler] Failed to load config from \(configPath): \(error)")
 	exit(1)
 }
-
-if config.layouts.isEmpty {
-	print("[tiler] No layouts found in config.")
-	exit(1)
-}
-
-print("[tiler] Loaded \(config.layouts.count) layout(s)")
-
-// ─── Register hotkeys ────────────────────────────────────────
-
-let hotKeyManager = HotKeyManager()
-hotKeyManager.register(layouts: config.layouts, spacing: config.spacing, hideOthers: config.hideOthers)
-
-// ─── Status bar ──────────────────────────────────────────────
-
-let statusBar = StatusBar(layouts: config.layouts, spacing: config.spacing, hideOthers: config.hideOthers)
-statusBar.setup()
-
-print("[tiler] Listening for hotkeys... (ctrl+c to quit)")
-
-// ─── Run loop ────────────────────────────────────────────────
-
-let app = NSApplication.shared
-app.setActivationPolicy(.accessory)
-app.run()
