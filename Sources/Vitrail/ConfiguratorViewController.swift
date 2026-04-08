@@ -683,6 +683,7 @@ final class ConfiguratorViewController: NSViewController, LayoutCanvasDelegate, 
 		canvasView.windows = layouts[idx].windows
 		canvasView.selectedWindowID = rule.id
 		refreshInspector()
+		updateSaveButton()
 	}
 
 	@objc private func deleteSelectedWindow() {
@@ -694,6 +695,7 @@ final class ConfiguratorViewController: NSViewController, LayoutCanvasDelegate, 
 			canvasView.windows = layouts[idx].windows
 			canvasView.selectedWindowID = nil
 			refreshInspector()
+			updateSaveButton()
 		}
 	}
 
@@ -912,6 +914,7 @@ final class ConfiguratorViewController: NSViewController, LayoutCanvasDelegate, 
 			  let widx = layouts[idx].windows.firstIndex(where: { $0.id == wid }) else { return }
 		layouts[idx].windows[widx][keyPath: keyPath] = value
 		canvasView.windows = layouts[idx].windows
+		updateSaveButton()
 	}
 
 	private func updateWindowGeometryFromFields() {
@@ -958,6 +961,7 @@ final class ConfiguratorViewController: NSViewController, LayoutCanvasDelegate, 
 			canvasView.windows = layouts[idx].windows
 			canvasView.selectedWindowID = selectedWindowID
 			refreshInspector()
+			updateSaveButton()
 		}
 	}
 }
