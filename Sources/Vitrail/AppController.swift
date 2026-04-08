@@ -46,6 +46,14 @@ final class AppController: NSObject, NSApplicationDelegate {
 	private func setupMainMenu() {
 		let mainMenu = NSMenu()
 
+		// File menu (Cmd+W to close configurator window)
+		let fileMenu = NSMenu(title: "File")
+		fileMenu.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+
+		let fileItem = NSMenuItem(title: "File", action: nil, keyEquivalent: "")
+		fileItem.submenu = fileMenu
+		mainMenu.addItem(fileItem)
+
 		// Edit menu (enables Cmd+A/C/V/X/Z in text fields)
 		let editMenu = NSMenu(title: "Edit")
 		editMenu.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")

@@ -261,9 +261,12 @@ final class ConfiguratorViewController: NSViewController, LayoutCanvasDelegate, 
 		titleField.delegate = self
 
 		screenPopup.font = .systemFont(ofSize: 12)
-		for i in 1...max(NSScreen.screens.count, 2) { screenPopup.addItem(withTitle: "\(i)") }
+		let screenCount = NSScreen.screens.count
+		for i in 1...max(screenCount, 1) { screenPopup.addItem(withTitle: "\(i)") }
 		screenPopup.target = self
 		screenPopup.action = #selector(screenChanged)
+		screenLabel.isHidden = screenCount <= 1
+		screenPopup.isHidden = screenCount <= 1
 
 		for f in [xField, yField, wField, hField] {
 			f.bezelStyle = .roundedBezel
@@ -578,11 +581,14 @@ final class ConfiguratorViewController: NSViewController, LayoutCanvasDelegate, 
 
 	private func refreshInspector() {
 		let hasWindow = selectedWindowID != nil
+		let multiScreen = NSScreen.screens.count > 1
 
-		for v: NSView in [appLabel, appField, appBrowseBtn, titleLabel, titleField, screenLabel, screenPopup,
+		for v: NSView in [appLabel, appField, appBrowseBtn, titleLabel, titleField,
 						   xLabel, xField, yLabel, yField, wLabel, wField, hLabel, hField, deleteWindowBtn] {
 			v.isHidden = !hasWindow
 		}
+		screenLabel.isHidden = !hasWindow || !multiScreen
+		screenPopup.isHidden = !hasWindow || !multiScreen
 		noWindowLabel.isHidden = hasWindow
 
 		guard let wid = selectedWindowID,
@@ -765,9 +771,12 @@ final class ConfiguratorViewController: NSViewController, LayoutCanvasDelegate, 
 
 	private func rebuildScreenPopup() {
 		let current = screenPopup.indexOfSelectedItem
+		let screenCount = NSScreen.screens.count
 		screenPopup.removeAllItems()
-		for i in 1...max(NSScreen.screens.count, 2) { screenPopup.addItem(withTitle: "\(i)") }
+		for i in 1...max(screenCount, 1) { screenPopup.addItem(withTitle: "\(i)") }
 		if current >= 0 && current < screenPopup.numberOfItems { screenPopup.selectItem(at: current) }
+		screenLabel.isHidden = screenCount <= 1
+		screenPopup.isHidden = screenCount <= 1
 	}
 
 	@objc private func screenChanged() {
